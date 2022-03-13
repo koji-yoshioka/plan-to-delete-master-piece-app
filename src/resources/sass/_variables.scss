@@ -1,0 +1,10 @@
+$breakpoints: (
+  'sp': 'screen and (max-width: 600px)',
+  'tablet': 'screen and (min-width: 601px) and (max-width:999px)',
+  'pc': 'screen and (min-width: 1000px)',
+) !default;
+
+$base-color: #1c1c1c;
+$border-color: #DCC090;
+$font-color: #DCC090;
+$font-family: QYakuHanJP, 'Noto Sans JP', '游ゴシック', 'Yu Gothic', sans-serif;

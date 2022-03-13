@@ -1,0 +1,21 @@
+@use './variables';
+
+@function getHeaderHeight($breakpoint: sp) {
+  @if $breakpoint == 'sp' {
+    @return 60px;
+  } @else if $breakpoint == 'tablet' {
+    @return 80px;
+  } @else if $breakpoint == 'pc' {
+    @return 100px;
+  }
+}
+
+@function getFooterHeight($breakpoint: sp) {
+  @if $breakpoint == 'sp' {
+    @return 240px;
+  } @else if $breakpoint == 'tablet' {
+    @return 270px;
+  } @else if $breakpoint == 'pc' {
+    @return 300px;
+  }
+}
