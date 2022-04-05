@@ -3,6 +3,11 @@
     "target": "es5",
     "strict": true,
     "module": "es6",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "paths": {
+      "@*": [
+        "./resources/js*"
+      ]
+    }
   }
 }

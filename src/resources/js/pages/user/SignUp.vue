@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import { reactive } from 'vue';
-import { useStore } from '../store/auth';
+import { useStore } from '@/store/user/auth';
 import { useRouter } from 'vue-router';
-import Section from '../components/Section.vue';
+import Section from '@/components/Section.vue';
 
 interface Form {
   email: string | null;
   password: string | null;
-  passwordConfirm: string | null;
+  password_confirmation: string | null;
 }
 
 const form = reactive<Form>({
   email: null,
   password: null,
-  passwordConfirm: null,
+  password_confirmation: null,
 });
 
 const router = useRouter();
@@ -30,7 +30,12 @@ const submit = () => {
     <h2 class="title">会員登録</h2>
     <input class="input" type="email" placeholder="メールアドレス" v-model="form.email" />
     <input class="input" type="password" placeholder="パスワード" v-model="form.password" />
-    <input class="input" type="password" placeholder="パスワード（確認用）" v-model="form.passwordConfirm" />
+    <input
+      class="input"
+      type="password"
+      placeholder="パスワード（確認用）"
+      v-model="form.password_confirmation"
+    />
     <button class="submit" @click="submit">登録</button>
   </Section>
 </template>

@@ -5,6 +5,15 @@ $breakpoints: (
 ) !default;
 
 $base-color: #1c1c1c;
-$border-color: #DCC090;
-$font-color: #DCC090;
+$border-color: #dcc090;
+
+// Primary Button
+$primary-btn-border-color: #1c1c1c;
+$primary-btn-bg-color: #dcc090;
+$primary-btn-font-color: #1c1c1c;
+$primary-btn-border-color--hover: #dcc090;
+$primary-btn-bg-color--hover: #1c1c1c;
+$primary-btn-font-color--hover: #dcc090;
+
+$font-color: #dcc090;
 $font-family: QYakuHanJP, 'Noto Sans JP', '游ゴシック', 'Yu Gothic', sans-serif;
