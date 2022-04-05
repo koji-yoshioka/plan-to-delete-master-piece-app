@@ -17,10 +17,16 @@
     <nav class="header-menu">
       <ul class="header-menu__item-list">
         <li class="header-menu__item">
-          <router-link to="/login" exact>ログイン</router-link>
+          <router-link to="/company-profile-ex" exact>Exテスト会社情報</router-link>
         </li>
         <li class="header-menu__item">
-          <router-link to="/sign-up" exact>新規登録</router-link>
+          <router-link to="/company-profile" exact>テスト会社情報</router-link>
+        </li>
+        <li class="header-menu__item">
+          <router-link to="/user-login" exact>ログイン</router-link>
+        </li>
+        <li class="header-menu__item">
+          <router-link to="/user-sign-up" exact>新規登録</router-link>
         </li>
       </ul>
     </nav>
@@ -57,22 +63,20 @@
 }
 
 .logo {
+  width: max-content;
   @include mixins.mq(sp) {
-    width: 50px;
     &__img {
-      width: 100%;
+      width: 50px;
     }
   }
   @include mixins.mq(tablet) {
-    width: 60px;
     &__img {
-      width: 100%;
+      width: 60px;
     }
   }
   @include mixins.mq(pc) {
-    width: 80px;
     &__img {
-      width: 100%;
+      width: 80px;
     }
   }
 }

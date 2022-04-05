@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\Company\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
+use Illuminate\Contracts\Auth\Guard;
+use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -28,7 +31,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = RouteServiceProvider::HOME;
+    protected string $redirectTo = RouteServiceProvider::HOME;
 
     /**
      * Create a new controller instance.
@@ -37,7 +40,17 @@ class LoginController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('guest')->except('logout');
+        $this->middleware('guest:company')->except('logout');
+    }
+
+    /**
+     * Specify authPattern
+     *
+     * @return Guard|StatefulGuard
+     */
+    protected function guard(): Guard|StatefulGuard
+    {
+        return Auth::guard('company');
     }
 
     /**
@@ -47,7 +60,7 @@ class LoginController extends Controller
      * @param  mixed  $user
      * @return mixed
      */
-    protected function authenticated(Request $request, $user)
+    protected function authenticated(Request $request, $user): mixed
     {
         return $user;
     }
@@ -58,7 +71,7 @@ class LoginController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    protected function loggedOut(Request $request)
+    protected function loggedOut(Request $request): JsonResponse
     {
         // セッションを再生成する
         $request->session()->regenerate();

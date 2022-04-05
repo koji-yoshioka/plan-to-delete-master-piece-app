@@ -17,7 +17,10 @@ mix.ts('resources/js/app.ts', 'public/js').vue()
     .webpackConfig({
         resolve: {
             alias: {
-                '@': path.resolve('resources/sass')
+                '@': [
+                    path.resolve('resources/sass'),
+                    path.resolve('resources/js')
+                ],
             }
         }
     });

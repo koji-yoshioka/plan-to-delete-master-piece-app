@@ -1,8 +1,8 @@
-import { auth, key as authKey } from './auth';
+import { auth as authUser, key as authUserKey } from './user/auth';
 
 export const store = [
   {
-    modelName: auth,
-    key: authKey
+    modelName: authUser,
+    key: authUserKey
   }
 ]

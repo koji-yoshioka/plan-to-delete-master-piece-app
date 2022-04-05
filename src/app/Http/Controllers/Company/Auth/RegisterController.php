@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Http\Controllers\Auth;
+namespace App\Http\Controllers\Company\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
-use App\User;
+use App\Models\Company;
+use Illuminate\Contracts\Auth\Guard;
+use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -30,7 +33,7 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = RouteServiceProvider::HOME;
+    protected string $redirectTo = RouteServiceProvider::HOME;
 
     /**
      * Create a new controller instance.
@@ -39,7 +42,17 @@ class RegisterController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('guest');
+        $this->middleware('guest:company');
+    }
+
+    /**
+     * Specify authPattern
+     *
+     * @return Guard|StatefulGuard
+     */
+    protected function guard(): Guard|StatefulGuard
+    {
+        return Auth::guard('company');
     }
 
     /**
@@ -48,7 +61,7 @@ class RegisterController extends Controller
      * @param  array  $data
      * @return \Illuminate\Contracts\Validation\Validator
      */
-    protected function validator(array $data)
+    protected function validator(array $data): \Illuminate\Contracts\Validation\Validator
     {
         return Validator::make($data, [
             'name' => ['string', 'max:255'],
@@ -61,11 +74,11 @@ class RegisterController extends Controller
      * Create a new user instance after a valid registration.
      *
      * @param  array  $data
-     * @return \App\User
+     * @return Company
      */
-    protected function create(array $data)
+    protected function create(array $data): Company
     {
-        return User::create([
+        return Company::create([
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
@@ -78,7 +91,7 @@ class RegisterController extends Controller
      * @param  mixed  $user
      * @return mixed
      */
-    protected function registered(Request $request, $user)
+    protected function registered(Request $request, $user): mixed
     {
         return $user;
     }

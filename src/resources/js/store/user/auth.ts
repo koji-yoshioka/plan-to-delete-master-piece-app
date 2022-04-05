@@ -31,7 +31,11 @@ export const auth = createStore<State>({
   },
   actions: {
     async signUp({ commit }, data) {
-      const response = await axios.post('/api/sign-up', data);
+      const response = await axios.post('/api/user/sign-up', data);
+      commit('setUser', response.data);
+    },
+    async login({ commit }, data) {
+      const response = await axios.post('/api/user/login', data);
       commit('setUser', response.data);
     }
   }
