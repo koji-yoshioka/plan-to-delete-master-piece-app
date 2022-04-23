@@ -5,23 +5,20 @@ import { ErrorObject } from '@vuelidate/core'
 const showError = ref(false)
 
 const props = defineProps({
-  // label: {
-  //   type: String,
-  //   defautl: null,
-  // },
+  maxlength: {
+    type: Number,
+    default: null,
+  },
   placeholder: {
     type: String,
     defautl: null,
-  },
-  withRequiredLabel: {
-    type: Boolean,
-    default: false,
   },
   errors: {
     type: Array as PropType<Array<ErrorObject>>,
     default: (): Array<ErrorObject> => [],
   },
 })
+
 const emit = defineEmits(['update:modelValue'])
 
 const onInput = (event: Event) => {
@@ -30,20 +27,19 @@ const onInput = (event: Event) => {
   emit("update:modelValue", target.value)
 }
 
-const onBlur = () => {
+const onBlur = (event: Event) => {
   // フォーカスが外れたタイミングでエラーを表示する
   showError.value = props.errors.length > 0
 }
+
 </script>
 
 <template>
-  <div class="c-input-tel">
-    <!-- <label v-show="label" class="c-input-tel__label">{{ label }}</label>
-    <label v-show="withRequiredLabel" class="c-input-tel__label--required">必須</label>-->
-    <input class="c-input-tel__tel" :class="{ 'has-error': showError }" type="tel" :placeholder="placeholder"
-      :value="$attrs.modelValue" @input="onInput" @blur="onBlur" />
+  <div class="c-input-number">
+    <input class="c-input-number__number" :class="{ 'has-error': showError }" type="number" :maxlength="maxlength"
+      :placeholder="placeholder" :value="$attrs.modelValue" @input="onInput" @blur="onBlur" />
     <template v-if="showError" v-for="error of errors" :key="error.$uid">
-      <p class="c-input-tel__error-msg">{{ error.$message }}</p>
+      <p class="c-input-number__error-msg">{{ error.$message }}</p>
     </template>
   </div>
 </template>
@@ -51,10 +47,10 @@ const onBlur = () => {
 <style lang="scss" scoped>
 @use "~@/variables";
 
-.c-input-tel {
+.c-input-number {
   width: 100%;
 
-  &__tel {
+  &__number {
     background-color: #fff;
     border: variables.$border-color 2px solid;
     border-radius: 3px;
@@ -68,7 +64,7 @@ const onBlur = () => {
     }
   }
 
-  &__tel.has-error {
+  &__number.has-error {
     background-color: #ffd9d9;
     border: variables.$border-color 2px solid;
     border-radius: 3px;

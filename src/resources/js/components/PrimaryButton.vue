@@ -24,8 +24,8 @@ const onClick = () => {
   padding-left: 20px;
   padding-right: 20px;
   text-align: center;
-  transition: all 0.4s ease;
-  width: 100%;
+  // transition: all 0.4s ease;
+  width: max-content;
   &:focus {
     border: #1967d2 2px solid;
   }

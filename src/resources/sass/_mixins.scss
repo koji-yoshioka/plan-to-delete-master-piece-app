@@ -1,7 +1,15 @@
 @use './variables';
 
-@mixin mq($breakpoint: sp) {
-  @media #{map-get(variables.$breakpoints, $breakpoint)} {
-    @content;
+@mixin mq($breakpointList...) {
+  @each $breakpoint in $breakpointList {
+    @media #{map-get(variables.$breakpoints, $breakpoint)} {
+      @content;
+    }
   }
 }
+
+// @mixin mq($breakpoint) {
+//   @media #{map-get(variables.$breakpoints, $breakpoint)} {
+//     @content;
+//   }
+// }

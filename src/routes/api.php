@@ -26,6 +26,9 @@ Route::post('/company/login', 'Company\Auth\LoginController@login')->name('compa
 Route::post('/company/logout', 'Company\Auth\LoginController@logout')->name('company.logout');
 
 Route::get('/company/{id}', 'Company\CompanyController@get')->name('company.get');
+Route::get('/company', 'Company\CompanyController@getByConditions')->name('company.get-by-conditions');
 Route::put('/company/{id}', 'Company\CompanyController@update')->name('company.update');
+
+Route::get('/common/cities/{prefectureId}', 'Common\CityController@getByPrefectureId')->name('city.get-by-prefecture-id');
 
 

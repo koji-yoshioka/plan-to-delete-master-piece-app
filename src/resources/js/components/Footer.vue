@@ -29,7 +29,7 @@
 .footer {
   background-color: variables.$base-color;
   border-top: 0.5px solid variables.$border-color;
-  color: variables.$font-color;
+  color: #ccc;
   display: flex;
   flex-direction: column;
   padding-top: 10px;

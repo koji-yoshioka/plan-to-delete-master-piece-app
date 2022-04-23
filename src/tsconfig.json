@@ -2,7 +2,8 @@
   "compilerOptions": {
     "target": "es5",
     "strict": true,
-    "module": "es6",
+    "module": "esnext",
+    "jsx": "preserve",
     "moduleResolution": "node",
     "paths": {
       "@*": [

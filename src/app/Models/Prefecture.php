@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CompanyLogo extends Model
+class Prefecture extends Model
 {
-    public function company(): BelongsTo
+    public function region(): BelongsTo
     {
-        return $this->belongsTo('App\Models\Company');
+        return $this->belongsTo('App\Models\Region');
     }
 }
