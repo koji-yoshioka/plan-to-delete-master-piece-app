@@ -9,9 +9,12 @@ import TitleLabel from '@/components/TitleLabel.vue'
 
 import InputSquareImage from '@/components/InputSquareImage.vue'
 import InputText from '@/components/InputText.vue'
+import InputTextArea from '@/components/InputTextArea.vue'
 import InputTel from '@/components/InputTel.vue'
 import InputEMail from '@/components/InputEMail.vue'
 import PrimaryButton from '@/components/PrimaryButton.vue'
+
+import { ReqLogo, ReqImage, ResCompanyProfile, ResZipAddress, Holiday, PaymentMethod, SellingPoint } from '@/typings/interface/company/profile'
 
 const plainFields = ref<ValidationArgs>({
   id: null,
@@ -22,6 +25,11 @@ const plainFields = ref<ValidationArgs>({
   prefecture: null,
   city: null,
   restAddress: null,
+  nearestStation: null,
+  businessHoursFrom: null,
+  businessHoursTo: null,
+  comment: null,
+  note: null,
 })
 
 const rules = {
@@ -35,25 +43,35 @@ const rules = {
   prefecture: {},
   city: {},
   restAddress: {},
+  nearestStation: {},
+  businessHoursFrom: {},
+  businessHoursTo: {},
+  comment: {},
+  note: {},
 }
 const v$ = useVuelidate(rules, plainFields)
 
-const uploadLogo = ref<{
-  logo: File | null
-  preview: string | ArrayBuffer | null
-  isChanged: boolean
-}>({
+// DBに存在する全てのセールスポイント
+const allSellingPoints = ref<SellingPoint[]>([])
+// DBに存在する全ての支払い方法
+const allPaymentMethods = ref<PaymentMethod[]>([])
+// DBに存在する全ての休業日
+const allHolidays = ref<Holiday[]>([])
+
+// 選択したセールスポイント
+const reqSellingPointIds = ref<number[]>([])
+// 選択した休業日
+const reqPaymentMethodIds = ref<number[]>([])
+// 選択した支払い方法
+const reqHolidayIds = ref<number[]>([])
+
+const reqLogo = ref<ReqLogo>({
   logo: null,
   preview: null,
   isChanged: false,
 })
 
-const uploadImages = ref<{
-  displayNo: number
-  image: File | null
-  preview: string | ArrayBuffer | null
-  isChanged: boolean
-}[]>([
+const reqImages = ref<ReqImage[]>([
   {
     displayNo: 1,
     image: null,
@@ -82,24 +100,8 @@ const uploadImages = ref<{
 
 onMounted(
   async () => {
-    const res: {
-      data: {
-        name: string | null
-        email: string | null
-        tel: string | null
-        zipCode: string | null
-        prefecture: string | null
-        city: string | null
-        restAddress: string | null
-        logo: {
-          url: string | ArrayBuffer | null
-        },
-        images: {
-          displayNo: number
-          url: string | ArrayBuffer | null
-        }[]
-      }
-    } = await axios.get('/api/company/1')
+    const res: ResCompanyProfile = await axios.get('/api/company/1')
+    console.log('res', res);
 
     v$.value.id.$model = 1
     v$.value.name.$model = res.data.name
@@ -109,16 +111,37 @@ onMounted(
     v$.value.prefecture.$model = res.data.prefecture
     v$.value.city.$model = res.data.city
     v$.value.restAddress.$model = res.data.restAddress
-    uploadLogo.value.preview = res.data.logo.url
-      ? 'https://s3-ap-northeast-1.amazonaws.com/master-piece-company-images/1/logo/' + res.data.logo.url
+    v$.value.nearestStation.$model = res.data.nearestStation
+    v$.value.comment.$model = res.data.comment
+    v$.value.note.$model = res.data.note
+    reqLogo.value.preview = res.data.logo
+      ? 'https://s3-ap-northeast-1.amazonaws.com/master-piece-company-images/1/logo/' + res.data.logo
       : null
-    uploadImages.value.map(uploadImage => {
+    reqImages.value.map(reqImage => {
       res.data.images.forEach(image => {
-        if (image.displayNo === uploadImage.displayNo) {
-          uploadImage.preview = 'https://s3-ap-northeast-1.amazonaws.com/master-piece-company-images/1/images/' + image.url
+        if (image.displayNo === reqImage.displayNo) {
+          reqImage.preview = 'https://s3-ap-northeast-1.amazonaws.com/master-piece-company-images/1/images/' + image.fileName
         }
         return image
       })
+    })
+    res.data.sellingPoints.forEach(sellingPoint => {
+      allSellingPoints.value.push(sellingPoint)
+      if (sellingPoint.selected) {
+        reqSellingPointIds.value.push(sellingPoint.id)
+      }
+    })
+    res.data.paymentMethods.forEach(paymentMethod => {
+      allPaymentMethods.value.push(paymentMethod)
+      if (paymentMethod.selected) {
+        reqPaymentMethodIds.value.push(paymentMethod.id)
+      }
+    })
+    res.data.holidays.forEach(holiday => {
+      allHolidays.value.push(holiday)
+      if (holiday.selected) {
+        reqHolidayIds.value.push(holiday.id)
+      }
     })
   }
 )
@@ -126,59 +149,53 @@ onMounted(
 const onLogoChange = (logo: File) => {
   const reader = new FileReader()
   reader.onload = onloadEvent => {
-    uploadLogo.value.preview = onloadEvent.target ? onloadEvent.target.result : null
+    reqLogo.value.preview = onloadEvent.target ? onloadEvent.target.result : null
   }
   reader.readAsDataURL(logo)
-  uploadLogo.value.logo = logo
-  uploadLogo.value.isChanged = true
+  reqLogo.value.logo = logo
+  reqLogo.value.isChanged = true
 }
 
 const onImageChange = (image: File, displayNo: number) => {
   const reader = new FileReader()
   reader.onload = onloadEvent => {
-    uploadImages.value.map(uploadImage => {
-      if (uploadImage.displayNo === displayNo) {
-        uploadImage.preview = onloadEvent.target ? onloadEvent.target.result : null
+    reqImages.value.map(reqImage => {
+      if (reqImage.displayNo === displayNo) {
+        reqImage.preview = onloadEvent.target ? onloadEvent.target.result : null
       }
-      return uploadImage
+      return reqImage
     })
   }
   reader.readAsDataURL(image)
-  uploadImages.value.map(uploadImage => {
-    if (uploadImage.displayNo === displayNo) {
-      uploadImage.image = image
-      uploadImage.isChanged = true
+  reqImages.value.map(reqImage => {
+    if (reqImage.displayNo === displayNo) {
+      reqImage.image = image
+      reqImage.isChanged = true
     }
-    return uploadImage
+    return reqImage
   })
 }
 
 const onLogoDelete = () => {
-  uploadLogo.value.logo = null
-  uploadLogo.value.preview = null
-  uploadLogo.value.isChanged = true
+  reqLogo.value.logo = null
+  reqLogo.value.preview = null
+  reqLogo.value.isChanged = true
 }
 
 const onImageDelete = (displayNo: number) => {
-  uploadImages.value.map(uploadImage => {
-    if (uploadImage.displayNo === displayNo) {
-      uploadImage.image = null
-      uploadImage.preview = null
-      uploadImage.isChanged = true
+  reqImages.value.map(reqImage => {
+    if (reqImage.displayNo === displayNo) {
+      reqImage.image = null
+      reqImage.preview = null
+      reqImage.isChanged = true
     }
-    return uploadImage
+    return reqImage
   })
 }
 
 const jsonpAdapter = require('axios-jsonp')
 const getZipCode = async () => {
-  const res: {
-    data: {
-      pref: string
-      city: string
-      town: string
-    }
-  } = await axios.get(`https://api.zipaddress.net/?zipcode=${v$.value.zipCode.$model}`, { adapter: jsonpAdapter })
+  const res: ResZipAddress = await axios.get(`https://api.zipaddress.net/?zipcode=${v$.value.zipCode.$model}`, { adapter: jsonpAdapter })
   v$.value.prefecture.$model = res.data.pref
   v$.value.city.$model = res.data.city
   v$.value.restAddress.$model = res.data.town
@@ -210,15 +227,40 @@ const update = () => {
   if (v$.value.restAddress.$model && typeof v$.value.restAddress.$model === 'string') {
     formData.append('restAddress', v$.value.restAddress.$model)
   }
-  if (uploadLogo.value.isChanged) {
-    console.log('logo is changed');
-    formData.append('logo', uploadLogo.value.logo ? uploadLogo.value.logo : '')
+  if (v$.value.nearestStation.$model && typeof v$.value.nearestStation.$model === 'string') {
+    formData.append('nearestStation', v$.value.nearestStation.$model)
   }
-  uploadImages.value
-    .filter(uploadImage => uploadImage.isChanged)
-    .forEach(uploadImage => {
-      formData.append('images[' + uploadImage.displayNo + ']', uploadImage.image ? uploadImage.image : '')
+  if (v$.value.businessHoursFrom.$model && typeof v$.value.businessHoursFrom.$model === 'string') {
+    formData.append('businessHoursFrom', v$.value.businessHoursFrom.$model)
+  }
+  if (v$.value.businessHoursTo.$model && typeof v$.value.businessHoursTo.$model === 'string') {
+    formData.append('businessHoursTo', v$.value.businessHoursTo.$model)
+  }
+  if (v$.value.comment.$model && typeof v$.value.comment.$model === 'string') {
+    formData.append('comment', v$.value.comment.$model)
+  }
+  if (v$.value.note.$model && typeof v$.value.note.$model === 'string') {
+    formData.append('note', v$.value.note.$model)
+  }
+  if (reqLogo.value.isChanged) {
+    formData.append('logo', reqLogo.value.logo ? reqLogo.value.logo : '')
+  }
+  reqImages.value
+    .filter(reqImage => reqImage.isChanged)
+    .forEach(reqImage => {
+      formData.append('images[' + reqImage.displayNo + ']', reqImage.image ? reqImage.image : '')
     })
+
+  reqSellingPointIds.value.forEach(reqSellingPointId => {
+    formData.append('sellingPointIds[' + reqSellingPointId + ']', reqSellingPointId.toString())
+  })
+  reqPaymentMethodIds.value.forEach(reqPaymentMethodId => {
+    formData.append('paymentMethodIds[' + reqPaymentMethodId + ']', reqPaymentMethodId.toString())
+  })
+  reqHolidayIds.value.forEach(reqHolidayId => {
+    formData.append('holidayIds[' + reqHolidayId + ']', reqHolidayId.toString())
+  })
+
   // formData.forEach((v, k, f) => {
   //   console.log('key:' + k)
   //   console.log('value', v)
@@ -233,248 +275,248 @@ const update = () => {
 </script>
 
 <template>
-  <Section id="page-profile">
-    <h2 class="title">会社情報編集</h2>
+  <div class="page-profile">
+    <Section class="page-profile__section">
+      <h2 class="page-profile__title">会社情報編集</h2>
 
-    <div class="logo-area">
-      <TitleLabel class="logo-area__title">ロゴ画像</TitleLabel>
-      <InputSquareImage
-        class="logo-area__image"
-        :accept="['image/jpeg', 'image/png', 'image/svg+xml']"
-        :preview="uploadLogo.preview"
-        @upload="onLogoChange"
-        @fileDelete="onLogoDelete"
-      >未登録</InputSquareImage>
-    </div>
-
-    <div class="name-area">
-      <TitleLabel class="name-area__title" :required="true">会社名</TitleLabel>
-      <InputText
-        class="name-area__text"
-        :maxlength="255"
-        :errors="v$.name.$errors"
-        v-model="v$.name.$model"
-      ></InputText>
-    </div>
-
-    <div class="tel-area">
-      <TitleLabel class="tel-area__title">TEL（ハイフン不要）</TitleLabel>
-      <InputTel class="tel-area__tel" :errors="v$.tel.$errors" v-model="v$.tel.$model"></InputTel>
-    </div>
-
-    <div class="zip-area">
-      <TitleLabel class="zip-area__title">郵便番号（ハイフン不要）</TitleLabel>
-      <div class="zip-area__input">
-        <InputText class="zip-area__text" :errors="v$.zipCode.$errors" v-model="v$.zipCode.$model"></InputText>
-        <PrimaryButton class="zip-area__button" @click="getZipCode">住所検索</PrimaryButton>
+      <div class="page-profile__section-item is-logo">
+        <TitleLabel class="page-profile__section-item-title">ロゴ画像</TitleLabel>
+        <InputSquareImage class="page-profile__section-item-input"
+          :accept="['image/jpeg', 'image/png', 'image/svg+xml']" :preview="reqLogo.preview" @upload="onLogoChange"
+          @fileDelete="onLogoDelete"></InputSquareImage>
       </div>
-    </div>
 
-    <div class="prefecture-area">
-      <TitleLabel class="prefecture-area__title">都道府県</TitleLabel>
-      <InputText
-        class="prefecture-area__text"
-        :errors="v$.prefecture.$errors"
-        v-model="v$.prefecture.$model"
-      ></InputText>
-    </div>
-
-    <div class="city-area">
-      <TitleLabel class="city-area__title">市区町村</TitleLabel>
-      <InputText class="city-area__text" :errors="v$.city.$errors" v-model="v$.city.$model"></InputText>
-    </div>
-
-    <div class="rest-address-area">
-      <TitleLabel class="rest-address-area__title">以降の住所</TitleLabel>
-      <InputText
-        class="rest-address-area__title"
-        :errors="v$.restAddress.$errors"
-        v-model="v$.restAddress.$model"
-      ></InputText>
-    </div>
-
-    <div class="main-image-area">
-      <TitleLabel class="main-image-area__title">メイン画像</TitleLabel>
-      <InputSquareImage
-        class="main-image-area__image"
-        :accept="['image/jpeg', 'image/png']"
-        :preview="uploadImages[0].preview"
-        @upload="onImageChange($event, 1)"
-        @fileDelete="onImageDelete(1)"
-      >未登録</InputSquareImage>
-    </div>
-
-    <div class="sub-image-area">
-      <TitleLabel class="sub-image-area__title">サブ画像</TitleLabel>
-      <div class="sub-image-area__input">
-        <InputSquareImage
-          class="sub-image-area__image"
-          :accept="['image/jpeg', 'image/png']"
-          :preview="uploadImages[1].preview"
-          @upload="onImageChange($event, 2)"
-          @fileDelete="onImageDelete(2)"
-        >未登録</InputSquareImage>
-        <InputSquareImage
-          class="sub-image-area__image"
-          :accept="['image/jpeg', 'image/png']"
-          :preview="uploadImages[2].preview"
-          @upload="onImageChange($event, 3)"
-          @fileDelete="onImageDelete(3)"
-        >未登録</InputSquareImage>
-        <InputSquareImage
-          class="sub-image-area__image"
-          :accept="['image/jpeg', 'image/png']"
-          :preview="uploadImages[3].preview"
-          @upload="onImageChange($event, 4)"
-          @fileDelete="onImageDelete(4)"
-        >未登録</InputSquareImage>
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title" :required="true">会社名</TitleLabel>
+        <InputText class="page-profile__section-item-input" :maxlength="255" :errors="v$.name.$errors"
+          v-model="v$.name.$model">
+        </InputText>
       </div>
-    </div>
 
-    <div class="mail-area">
-      <TitleLabel class="mail-area__title" :required="true">メールアドレス</TitleLabel>
-      <InputEMail class="mail-area__text" :errors="v$.email.$errors" v-model="v$.email.$model"></InputEMail>
-    </div>
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title" :required="true">メールアドレス</TitleLabel>
+        <InputEMail class="page-profile__section-item-input" :errors="v$.email.$errors" v-model="v$.email.$model">
+        </InputEMail>
+      </div>
 
-    <div class="submit-area">
-      <PrimaryButton class="submit-area__submit" @click="update">更新</PrimaryButton>
-    </div>
-  </Section>
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title">TEL（ハイフン不要）</TitleLabel>
+        <InputTel class="page-profile__section-item-input" :errors="v$.tel.$errors" v-model="v$.tel.$model"></InputTel>
+      </div>
+
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title">郵便番号（ハイフン不要）</TitleLabel>
+        <div class="page-profile__section-item-zip-info">
+          <InputText class="page-profile__section-item-zip-info--input" :errors="v$.zipCode.$errors"
+            v-model="v$.zipCode.$model">
+          </InputText>
+          <PrimaryButton class="page-profile__section-item-zip-info--button" @click="getZipCode">住所検索</PrimaryButton>
+        </div>
+      </div>
+
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title">都道府県</TitleLabel>
+        <InputText class="page-profile__section-item-input" :errors="v$.prefecture.$errors"
+          v-model="v$.prefecture.$model">
+        </InputText>
+      </div>
+
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title">市区町村</TitleLabel>
+        <InputText class="page-profile__section-item-input" :errors="v$.city.$errors" v-model="v$.city.$model">
+        </InputText>
+      </div>
+
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title">以降の住所</TitleLabel>
+        <InputText class="page-profile__section-item-input" :errors="v$.restAddress.$errors"
+          v-model="v$.restAddress.$model">
+        </InputText>
+      </div>
+
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title">最寄り駅</TitleLabel>
+        <InputText class="page-profile__section-item-input" :errors="v$.nearestStation.$errors"
+          v-model="v$.nearestStation.$model">
+        </InputText>
+      </div>
+
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title">メイン画像</TitleLabel>
+        <InputSquareImage class="page-profile__section-item-input" :accept="['image/jpeg', 'image/png']"
+          :preview="reqImages[0].preview" @upload="onImageChange($event, 1)" @fileDelete="onImageDelete(1)">未登録
+        </InputSquareImage>
+      </div>
+
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title">サブ画像</TitleLabel>
+        <div class="page-profile__section-item-sub-images">
+          <InputSquareImage class="page-profile__section-item-sub-images--input" :accept="['image/jpeg', 'image/png']"
+            :preview="reqImages[1].preview" @upload="onImageChange($event, 2)" @fileDelete="onImageDelete(2)">
+          </InputSquareImage>
+          <InputSquareImage class="page-profile__section-item-sub-images--input" :accept="['image/jpeg', 'image/png']"
+            :preview="reqImages[2].preview" @upload="onImageChange($event, 3)" @fileDelete="onImageDelete(3)">
+          </InputSquareImage>
+          <InputSquareImage class="page-profile__section-item-sub-images--input" :accept="['image/jpeg', 'image/png']"
+            :preview="reqImages[3].preview" @upload="onImageChange($event, 4)" @fileDelete="onImageDelete(4)">
+          </InputSquareImage>
+        </div>
+      </div>
+
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title">セールスポイント</TitleLabel>
+        <div class="page-profile__section-item-checkbox-list">
+          <div class="page-profile__section-item-checkbox" v-for="sellingPoint in allSellingPoints"
+            :key="sellingPoint.id">
+            <input class="page-profile__section-item-checkbox--input" :id="`selling-point-${sellingPoint.id}`"
+              :value="sellingPoint.id" type="checkbox" v-model="reqSellingPointIds" />
+            <label class="page-profile__section-item-checkbox--label" :for="`selling-point-${sellingPoint.id}`">{{
+              sellingPoint.name
+            }}</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title">支払い方法</TitleLabel>
+        <div class="page-profile__section-item-checkbox-list">
+          <div class="page-profile__section-item-checkbox" v-for="paymentMethod in allPaymentMethods"
+            :key="paymentMethod.id">
+            <input class="page-profile__section-item-checkbox--input" :id="`payment-method-${paymentMethod.id}`"
+              :value="paymentMethod.id" type="checkbox" v-model="reqPaymentMethodIds" />
+            <label class="page-profile__section-item-checkbox--label" :for="`payment-method-${paymentMethod.id}`">{{
+              paymentMethod.name
+            }}</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title">休業日</TitleLabel>
+        <div class="page-profile__section-item-checkbox-list">
+          <div class="page-profile__section-item-checkbox" v-for="holiday in allHolidays" :key="holiday.id">
+            <input class="page-profile__section-item-checkbox--input" :id="`holiday-${holiday.id}`" :value="holiday.id"
+              type="checkbox" v-model="reqHolidayIds" />
+            <label class="page-profile__section-item-checkbox--label" :for="`holiday-${holiday.id}`">{{
+              holiday.name
+            }}</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title">コメント</TitleLabel>
+        <InputTextArea class="page-profile__section-item-input" :errors="v$.comment.$errors"
+          v-model="v$.comment.$model">
+        </InputTextArea>
+      </div>
+
+      <div class="page-profile__section-item">
+        <TitleLabel class="page-profile__section-item-title">備考</TitleLabel>
+        <InputTextArea class="page-profile__section-item-input" :errors="v$.note.$errors" v-model="v$.note.$model">
+        </InputTextArea>
+      </div>
+
+      <div class="page-profile__section-item is-submit">
+        <PrimaryButton class="page-profile__section-item-submit" @click="update">更新</PrimaryButton>
+      </div>
+    </Section>
+  </div>
 </template>
 
 <style lang="scss" scoped>
 @use "~@/variables";
 @use "~@/mixins";
-#page-profile {
+
+.page-profile {}
+
+.page-profile__section {
+  align-items: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
   margin: 0 auto;
   width: clamp(200px, 80%, 500px);
+
   @include mixins.mq(sp) {
     row-gap: 30px;
   }
-  @include mixins.mq(tablet) {
-    row-gap: 40px;
-  }
-  @include mixins.mq(pc) {
+
+  @include mixins.mq(tablet, pc) {
     row-gap: 40px;
   }
 }
-#page-profile {
-  .title {
-    color: variables.$font-color;
-    @include mixins.mq(sp) {
-      font-size: 20px;
-    }
-    // @include mixins.mq(tablet) {
-    // }
-    @include mixins.mq(pc) {
-      font-size: 36px;
-    }
-  }
-  // .section-item {
-  //   width: 100%;
-  // }
-  .logo-area {
-    width: clamp(200px, 50%, 300px);
-    // &__title {
-    // }
-    // &__image {
-    // }
-  }
-  .name-area {
+
+.page-profile__title {
+  color: #dcc090;
+  font-size: 1.5em;
+}
+
+.page-profile__section-item {
+  width: 100%;
+}
+
+.page-profile__section-item.is-logo {
+  width: clamp(200px, 50%, 300px);
+}
+
+.page-profile__section-item.is-submit {
+  @include mixins.mq(sp) {
     width: 100%;
-    // &__title {
-    // }
-    // &__text {
-    // }
   }
-  .tel-area {
+
+  @include mixins.mq(tablet, pc) {
+    max-width: 250px;
     width: 100%;
-    // &__title {
-    // }
-    // &__tel {
-    // }
   }
-  .zip-area {
-    width: 100%;
-    // &__title {
-    // }
-    &__input {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-    }
-    &__text {
-      width: 45%;
-    }
-    &__button {
-      width: 45%;
-    }
-  }
-  .prefecture-area {
-    width: 100%;
-    // &__title {
-    // }
-    // &__text {
-    // }
-  }
-  .city-area {
-    width: 100%;
-    // &__title {
-    // }
-    // &__text {
-    // }
-  }
-  .rest-address-area {
-    width: 100%;
-    // &__title {
-    // }
-    // &__text {
-    // }
-  }
-  .main-image-area {
-    width: 100%;
-    // &__title {
-    // }
-    // &__image {
-    // }
-  }
-  .sub-image-area {
-    width: 100%;
-    // &__title {
-    // }
-    &__input {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-    }
-    &__image {
-      width: 30%;
-    }
-  }
-  .mail-area {
-    width: 100%;
-    // &__title {
-    // }
-    // &__text {
-    // }
-  }
-  .submit-area {
-    @include mixins.mq(sp) {
-      width: 100%;
-    }
-    @include mixins.mq(tablet) {
-      max-width: 250px;
-      width: 100%;
-    }
-    @include mixins.mq(pc) {
-      max-width: 250px;
-      width: 100%;
-    }
-    // &__submit {
-    // }
-  }
+}
+
+.page-profile__section-item-title {}
+
+.page-profile__section-item-input {}
+
+.page-profile__section-item-submit {
+  width: 100%;
+}
+
+.page-profile__section-item-zip-info {
+  display: flex;
+  justify-content: space-between;
+}
+
+.page-profile__section-item-zip-info--input {
+  width: 45%;
+}
+
+.page-profile__section-item-zip-info--button {
+  width: 45%;
+}
+
+.page-profile__section-item-sub-images {
+  display: flex;
+  justify-content: space-between;
+}
+
+.page-profile__section-item-sub-images--input {
+  width: 30%;
+}
+
+.page-profile__section-item-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px
+}
+
+.page-profile__section-item-checkbox {
+  align-items: center;
+  display: flex;
+  gap: 10px
+}
+
+.page-profile__section-item-checkbox--input {
+  transform: scale(1.3);
+}
+
+.page-profile__section-item-checkbox--label {
+  color: #ccc;
 }
 </style>

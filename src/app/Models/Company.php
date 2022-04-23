@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -57,5 +58,35 @@ class Company extends Authenticatable
     public function images(): HasMany
     {
         return $this->hasMany('App\Models\CompanyImage');
+    }
+
+    /**
+     * Get rel sellingPoints.
+     *
+     * @return BelongsToMany
+     */
+    public function sellingPoints(): BelongsToMany
+    {
+        return $this->belongsToMany('App\Models\SellingPoint', 'company_selling_point', 'company_id', 'selling_point_id');
+    }
+
+    /**
+     * Get rel paymentMethods.
+     *
+     * @return BelongsToMany
+     */
+    public function paymentMethods(): BelongsToMany
+    {
+        return $this->belongsToMany('App\Models\PaymentMethod', 'company_payment_method', 'company_id', 'payment_method_id');
+    }
+
+    /**
+     * Get rel holidays.
+     *
+     * @return BelongsToMany
+     */
+    public function holidays(): BelongsToMany
+    {
+        return $this->belongsToMany('App\Models\Holiday', 'company_holiday', 'company_id', 'holiday_id');
     }
 }

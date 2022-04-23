@@ -25,7 +25,11 @@ class CreateCompaniesTable extends Migration
             $table->string('prefecture')->nullable();
             $table->string('city')->nullable();
             $table->string('rest_address')->nullable();
-
+            $table->string('nearest_station')->nullable();
+            $table->string('business_hours_from')->nullable();
+            $table->string('business_hours_to')->nullable();
+            $table->text('comment')->nullable();
+            $table->string('note')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

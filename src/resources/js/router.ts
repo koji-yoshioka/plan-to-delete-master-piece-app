@@ -1,10 +1,12 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import Home from '@/pages/Home.vue';
-import UserSignUp from '@/pages/user/SignUp.vue';
-import UserLogin from '@/pages/user/Login.vue';
+import { createRouter, createWebHistory, RouteLocationNormalizedLoaded as Route } from 'vue-router';
+import Home from '@/pages/Home.vue'
+import UserSignUp from '@/pages/user/SignUp.vue'
+import UserLogin from '@/pages/user/Login.vue'
 
-import CompanyProfile from '@/pages/company/Profile.vue';
-import CompanyProfileEx from '@/pages/company/ProfileEx.vue';
+import Temp1 from '@/pages/user/Temp1.vue'
+import Search from '@/pages/user/Search.vue'
+import CompanyProfile from '@/pages/company/Profile.vue'
+
 
 const routes = [
   {
@@ -22,22 +24,32 @@ const routes = [
     name: 'UserLogin',
     component: UserLogin,
   },
-
-
+  {
+    path: '/temp1',
+    name: 'Temp1',
+    component: Temp1,
+  },
+  // {
+  //   path: '/search-detail/:prefectureId',
+  //   name: 'search-detail',
+  //   component: SearchDetail,
+  //   props: (route: Route) => ({
+  //     prefectureId: Number(route.params.prefectureId)
+  //   }),
+  // },
+  {
+    path: '/search',
+    name: 'search',
+    component: Search,
+    // props: (route: Route) => ({
+    //   prefectureId: Number(route.params.prefectureId)
+    // }),
+  },
   {
     path: '/company-profile',
     name: 'CompanyProfile',
     component: CompanyProfile,
   },
-
-  {
-    path: '/company-profile-ex',
-    name: 'CompanyProfile-ex',
-    component: CompanyProfileEx,
-  },
-
-
-
 ]
 
 export const router = createRouter({
